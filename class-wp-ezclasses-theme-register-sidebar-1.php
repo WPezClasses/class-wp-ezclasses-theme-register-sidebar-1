@@ -43,9 +43,10 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
 	/**
 	 *
 	 */
-	public function ezc_init($arr_args = NULL){
-	 
-	  $this->_arr_init = $this->init_defaults();
+	public function ezc_init($arr_args = ''){
+	
+	  $arr_init_defaults = $this->init_defaults();
+	  $this->_arr_init = WP_ezMethods::ez_array_merge(array($arr_init_defaults, $arr_args));
 	}
 		
 
@@ -69,11 +70,11 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
 	 */ 
     public function ez_rs($arr_args = ''){
 	
-	  if ( WP_ezMethods::array_pass($arr_args) )
+	  if ( ! WP_ezMethods::array_pass($arr_args) ){
+	    return array('status' => false, 'msg' => 'ERROR: arr_args is not valid', 'source' => get_class() . ' ' . __METHOD__, 'arr_args' => 'error');
+	  }
 	  
-	    $arr_args = WP_ezMethods::ez_array_merge(array( $this->_arr_init, $arr_args));
-		
-	//die(print_r($this->_arr_init));  
+	    $arr_args = WP_ezMethods::ez_array_merge(array( $this->_arr_init, $arr_args)); 
 	
 	    if ( $arr_args['active'] === true && WP_ezMethods::array_pass($arr_args['arr_args']) ){
 		
@@ -111,36 +112,34 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
 				*/
 							
 				/**
-				 * returns arr_args that are actice. if you 
+				 * returns arr_args that are active. if you don't really have an active => false then checking this is not really necessary (but it can help). 
 				 */
-				if ( isset($arr_args['active_true']) && $arr_args['active_true'] === true ){
+				if ( WP_ezMethods::ez_true($arr_args['active_true']) ){
 				
 					$arr_active_true_response = $this->register_sidebar_active_true($arr_register_sidebar);
 					
-					if ( ! isset($arr_active_true_response['status']) && $arr_active_true_response['status'] === false ){
+					if ( $arr_active_true_response['status'] === false ){
 						return $arr_active_true_response;
 					}
 					$arr_register_sidebar = $arr_active_true_response['arr_args'];
 				}
 				
-				/*
+				/**
 				 * At this point we should be good to go.
 				 */ 
-				 
-				// set - if you're going to _do then you have to _set
 
-				$this->_arr_register_sidebar_base = WP_ezMethods::ez_array_merge(array($this->register_sidebar_base_defaults(), $arr_register_sidebar_base));
-				$this->_arr_register_sidebar = $arr_register_sidebar;
+				$arr_arg['base'] = WP_ezMethods::ez_array_merge(array($this->register_sidebar_base_defaults(), $arr_register_sidebar_base));
+				$arr_arg['arr_args']  = $arr_register_sidebar;
 
 				// do
-				$this->register_sidebar_do();
+				$this->register_sidebar_do($arr_arg);
 
 				return true;
 			
-			} else {
+		} else {
 			//TODO - not an array
-			}
-		}  
+		}
+	}  
 
 
 		/**
@@ -233,19 +232,20 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
 		/**
 		 * Whips through the array and returns only the active ones
 		 */	
-		public function register_sidebar_active_true($arr_args = NULL) {
+		public function register_sidebar_active_true($arr_args = '') {
 			$str_return_source = get_class() . ' ' . __METHOD__; 
 		
 			if ( WP_ezMethods::array_pass($arr_args) ) {
 			
 				$arr_active_true = array();
 				foreach ($arr_args as $str_key => $arr_value){
-					if (  isset($arr_value['active']) && $arr_value['active'] === true ) {
+					if (  WP_ezMethods::ez_true($arr_value['active'] === true) ) {
 						$arr_active_true[$str_key] = $arr_value;	
 					}
 				}	
 				return array('status' => true, 'msg' => 'success', 'source' => $str_return_source . ' ' , 'arr_args' => $arr_active_true);
 			}
+			// TODO what if the result is empty. there are no active === true
 			return array('status' => false, 'msg' => 'ERROR: arr_args ! is_array() || empthy()', 'source' => $str_return_source, 'arr_args' => 'error');
 		}
 		
@@ -253,18 +253,24 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
 		/**
 		 * Combines the base and the values and makes the register_sidebar() magic happen
 		 */
-		public function register_sidebar_do() {
+		public function register_sidebar_do($arr_args = '') {
 			$str_return_source = get_class() . ' ' . __METHOD__; 
 
-			if ( WP_ezMethods::array_pass($this->_arr_register_sidebar) ){
+			if ( WP_ezMethods::array_key_pass($arr_args, 'arr_args') ){
 			
-						// OK now crank'em out
-			  foreach( $this->_arr_register_sidebar as $str_key => $arr_value ){
+			  if ( WP_ezMethods::array_key_pass($arr_args, 'base') ){
+			    $arr_args['base'] = WP_ezMethods(array( $this->register_sidebar_base_defaults(), $arr_args['base']));
+			  } else {
+			    $arr_args['base'] = $this->register_sidebar_base_defaults();
+			  }
+			
+			  // OK now crank'em out
+			  foreach( $arr_args['arr_args'] as $str_key => $arr_value ){
 			
 				// Let's - for now - the list has been pre scrubbed. 
 				//if ( isset($arr_value['active']) && $arr_value['active'] === true ) {
 			
-					$arr_value = array_merge($this->_arr_register_sidebar_base, $arr_value);
+					$arr_value = array_merge($arr_args['base'], $arr_value);
 				
 					$str_widget_class = isset($arr_value['class_widget']) ? $arr_value['class_widget'] : 'wp-ezc-class-not-assigned-%1';
 					$str_widget_id = isset($arr_value['id_css']) ? $arr_value['id_css'] : "wp-ezbs-widget";
@@ -294,7 +300,7 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
 				//}
 			}
 
-			return array('status' => true, 'msg' => 'success', 'source' => $str_return_source, 'arr_args' => $this->_arr_register_sidebar);
+			return array('status' => true, 'msg' => 'success', 'source' => $str_return_source, 'arr_args' => $arr_args);
 			
 			} else { 
 			
