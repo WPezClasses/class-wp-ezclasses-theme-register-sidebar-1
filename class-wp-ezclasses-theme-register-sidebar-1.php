@@ -259,7 +259,7 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
 			if ( WP_ezMethods::array_key_pass($arr_args, 'arr_args') ){
 			
 			  if ( WP_ezMethods::array_key_pass($arr_args, 'base') ){
-			    $arr_args['base'] = WP_ezMethods(array( $this->register_sidebar_base_defaults(), $arr_args['base']));
+			    $arr_args['base'] = WP_ezMethods::ez_array_merge(array( $this->register_sidebar_base_defaults(), $arr_args['base']));
 			  } else {
 			    $arr_args['base'] = $this->register_sidebar_base_defaults();
 			  }
