@@ -31,6 +31,13 @@ if (!defined('ABSPATH')) {
 if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
   class Class_WP_ezClasses_Theme_Register_Sidebar_1 extends Class_WP_ezClasses_Master_Singleton {
   
+    private $_version;
+	private $_url;
+	private	$_path;
+	private $_path_parent;
+	private $_basename;
+	private $_file;
+  
     protected $_arr_init;
 	
 	protected $_arr_register_sidebar_base;
@@ -43,14 +50,15 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
 	/**
 	 *
 	 */
-	public function ezc_init($arr_args = ''){
+	public function ez__construct($arr_args = ''){
+	
+	  $this->setup();
 	
 	  $arr_init_defaults = $this->init_defaults();
-	  $this->_arr_init = WP_ezMethods::ez_array_merge(array($arr_init_defaults, $arr_args));
+	  $this->_arr_init = WPezHelpers::ez_array_merge(array($arr_init_defaults, $arr_args));
 	}
 		
-
-		
+	
     protected function init_defaults(){
 	
 	  $arr_defaults = array(
@@ -63,6 +71,17 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
         ); 
 	  return $arr_defaults;
 	}
+	
+	protected function setup(){
+	
+	  $this->_version = '0.5.0';
+	  $this->_url = plugin_dir_url( __FILE__ );
+	  $this->_path = plugin_dir_path( __FILE__ );
+	  $this->_path_parent = dirname($this->_path);
+	  $this->_basename = plugin_basename( __FILE__ );
+	  $this->_file = __FILE__ ;	
+	
+	}
 		
 		
     /**
@@ -70,13 +89,13 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
 	 */ 
     public function ez_rs($arr_args = ''){
 	
-	  if ( ! WP_ezMethods::array_pass($arr_args) ){
+	  if ( ! WPezHelpers::ez_array_pass($arr_args) ){
 	    return array('status' => false, 'msg' => 'ERROR: arr_args is not valid', 'source' => get_class() . ' ' . __METHOD__, 'arr_args' => 'error');
 	  }
 	  
-	    $arr_args = WP_ezMethods::ez_array_merge(array( $this->_arr_init, $arr_args)); 
+	    $arr_args = WPezHelpers::ez_array_merge(array( $this->_arr_init, $arr_args)); 
 	
-	    if ( $arr_args['active'] === true && WP_ezMethods::array_pass($arr_args['arr_args']) ){
+	    if ( $arr_args['active'] === true && WPezHelpers::ez_array_pass($arr_args['arr_args']) ){
 		
 		  $arr_register_sidebar_base = $arr_args['base'];
 		  $arr_register_sidebar = $arr_args['arr_args'];
@@ -114,7 +133,7 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
 				/**
 				 * returns arr_args that are active. if you don't really have an active => false then checking this is not really necessary (but it can help). 
 				 */
-				if ( WP_ezMethods::ez_true($arr_args['active_true']) ){
+				if ( WPezHelpers::ez_true($arr_args['active_true']) ){
 				
 					$arr_active_true_response = $this->register_sidebar_active_true($arr_register_sidebar);
 					
@@ -128,7 +147,7 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
 				 * At this point we should be good to go.
 				 */ 
 
-				$arr_arg['base'] = WP_ezMethods::ez_array_merge(array($this->register_sidebar_base_defaults(), $arr_register_sidebar_base));
+				$arr_arg['base'] = WPezHelpers::ez_array_merge(array($this->register_sidebar_base_defaults(), $arr_register_sidebar_base));
 				$arr_arg['arr_args']  = $arr_register_sidebar;
 
 				// do
@@ -161,7 +180,7 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
 			 */			
 			if ( $this->_arr_init['filters'] ){
 				$arr_defaults_via_filter = apply_filters('filter_ezc_theme_register_sidebar_1_base_defaults', $arr_defaults);
-				$arr_defaults = WP_ezMethods::_ez_array_merge(array($arr_defaults, $arr_defaults_via_filter));
+				$arr_defaults = WPezHelpers::_ez_array_merge(array($arr_defaults, $arr_defaults_via_filter));
 			}
 			return $arr_defaults;
 		}				
@@ -235,11 +254,11 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
 		public function register_sidebar_active_true($arr_args = '') {
 			$str_return_source = get_class() . ' ' . __METHOD__; 
 		
-			if ( WP_ezMethods::array_pass($arr_args) ) {
+			if ( WPezHelpers::ez_array_pass($arr_args) ) {
 			
 				$arr_active_true = array();
 				foreach ($arr_args as $str_key => $arr_value){
-					if (  WP_ezMethods::ez_true($arr_value['active'] === true) ) {
+					if (  WPezHelpers::ez_true($arr_value['active'] === true) ) {
 						$arr_active_true[$str_key] = $arr_value;	
 					}
 				}	
@@ -256,10 +275,10 @@ if (! class_exists('Class_WP_ezClasses_Theme_Register_Sidebar_1') ) {
 		public function register_sidebar_do($arr_args = '') {
 			$str_return_source = get_class() . ' ' . __METHOD__; 
 
-			if ( WP_ezMethods::array_key_pass($arr_args, 'arr_args') ){
+			if ( WPezHelpers::ez_array_key_pass($arr_args, 'arr_args') ){
 			
-			  if ( WP_ezMethods::array_key_pass($arr_args, 'base') ){
-			    $arr_args['base'] = WP_ezMethods::ez_array_merge(array( $this->register_sidebar_base_defaults(), $arr_args['base']));
+			  if ( WPezHelpers::ez_array_key_pass($arr_args, 'base') ){
+			    $arr_args['base'] = WPezHelpers::ez_array_merge(array( $this->register_sidebar_base_defaults(), $arr_args['base']));
 			  } else {
 			    $arr_args['base'] = $this->register_sidebar_base_defaults();
 			  }
